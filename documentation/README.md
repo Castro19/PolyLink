@@ -9,18 +9,6 @@
     - [Project Goals](#project-goals)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
-      - [1. Git](#1-git)
-      - [2. Node.js and npm](#2-nodejs-and-npm)
-      - [3. Express.js](#3-expressjs)
-      - [4. MongoDB](#4-mongodb)
-      - [5. OpenAI API](#5-openai-api)
-      - [6. React](#6-react)
-      - [7. Redux](#7-redux)
-      - [8. React Router](#8-react-router)
-      - [9. Tailwind CSS](#9-tailwind-css)
-      - [10. ShadCN UI](#10-shadcn-ui)
-      - [11. Aceternity UI](#11-aceternity-ui)
-      - [12. Visual Studio Code (Optional)](#12-visual-studio-code-optional)
     - [Project Structure](#project-structure)
     - [Explanation of Structure](#explanation-of-structure)
       - [Client (Front end)](#client-front-end)
@@ -32,18 +20,7 @@
       - [ProtectedRoute Explanation](#protectedroute-explanation)
       - [Layout Explanation](#layout-explanation)
     - [Components](#components)
-    - [Redux](#redux)
-      - [1. Overview of Redux](#1-overview-of-redux)
-      - [2. Store Configuration](#2-store-configuration)
-      - [3. Slices](#3-slices)
-      - [4. Initial State](#4-initial-state)
-      - [5. Actions:](#5-actions)
-      - [6. Reducers: Most important Redux Concept](#6-reducers-most-important-redux-concept)
-      - [7. Extra Reducers and Async Thunks:](#7-extra-reducers-and-async-thunks)
-      - [8. Connecting Redux to React](#8-connecting-redux-to-react)
-      - [9. Selectors](#9-selectors)
-      - [10. Dispatch](#10-dispatch)
-      - [11. Best Practices:](#11-best-practices)
+    - [Redux Introuction](#redux-introuction)
     - [Auth Slice](#auth-slice)
       - [Auth Selector to access the Auth State](#auth-selector-to-access-the-auth-state)
       - [Dispatching Auth Actions](#dispatching-auth-actions)
@@ -81,7 +58,7 @@
       - [API Endpoints](#api-endpoints)
     - [Integration with OpenAI API](#integration-with-openai-api)
       - [Assistants](#assistants)
-      - [**How to create an Assistant**:](#how-to-create-an-assistant)
+      - [How to create an Assistant](#how-to-create-an-assistant)
       - [Threads](#threads)
     - [Integration with MongoDB](#integration-with-mongodb)
       - [Benefits of This Approach](#benefits-of-this-approach)
@@ -109,7 +86,7 @@
     - [Github Desktop or Tower (Optional but strongly recommended)](#github-desktop-or-tower-optional-but-strongly-recommended)
     - [MongoDB Compass](#mongodb-compass)
     - [Browser: Firefox Developer Edition](#browser-firefox-developer-edition)
-      - [Firefox Chrome Extensions (Very helpful)](#firefox-chrome-extensions-very-helpful)
+      - [Firefox Extensions (Very helpful)](#firefox-extensions-very-helpful)
     - [VSCode Extensions](#vscode-extensions)
       - [Installation Instructions](#installation-instructions)
     - [Contact](#contact)
@@ -154,7 +131,19 @@
    - **Progress**: In progress.
      - Basic authentication setup is in place, but further integration with Cal Poly's email verification and authentication systems is needed.
 
-4. **Access Control**:
+4. **Setting Up Limits**
+
+   - Users will have a limit of chat messages they are allowed to submit in a given amount of time.
+     - EX: 30 messages every 3 hours
+   - **Progress**: Not started
+
+5. **Deploying on Microsoft Azure**:
+
+- Once this project has security practices in place and has been tested, we will deploy this application on Microsoft Azure.
+- **Progress**: In Progess
+  - CI/CD is implemented however, our application is not being hosted correctly on Microsoft Azure.
+
+6. **Access Control**:
 
    - Users will need to be assigned permissions based on their current role/entity.
    - Application will need to decide between `RBAC` and `EBAC` to assign permssions to users.
@@ -162,7 +151,7 @@
    - Only allow specific users the power to create assistants
    - **Progress**: Not yet started
 
-5. **Create custom assistants for professors**:
+7. **Create custom assistants for professors**:
 
    - Provide tailored responses based on the professor's expertise.
    - Enable students to ask questions and receive personalized assistance.
@@ -170,7 +159,7 @@
      - There is a page that easily allows creation of assistants through submitting a form.
      - Minor tweaks needed for scalability issues.
 
-6. **Help match students and advisors**:
+8. **Help match students and advisors**:
 
    - Analyze interests, availability, and previous projects to facilitate matches.
    - Streamline the process of finding advisors for senior projects.
@@ -178,39 +167,42 @@
      - Need to store user information such as interests, availability, previous projects, etc.
      - Following this, create the action function in `Assistant API` to match students with advisors.
 
-7. **Analyze senior project proposals**:
+9. **Analyze senior project proposals**:
 
-   - Identify any missing sections or readiness for submission.
-   - Ensure students receive comprehensive feedback on their proposals.
-   - Use action functions in `Assistant API` to run scripts analyzing senior project proposals.
-   - **Progress**: Not started
-     - Assistant API foundation is there, but the action function has yet to be started.
+- Identify any missing sections or readiness for submission.
+- Ensure students receive comprehensive feedback on their proposals.
+- Use action functions in `Assistant API` to run scripts analyzing senior project proposals.
+- **Progress**: Not started
+  - Assistant API foundation is there, but the action function has yet to be started.
 
-8. **Guide students on class registration**:
+10. **Guide students on class registration**:
 
-   - Provide information on how to register for classes requiring instructor consent, such as senior projects or CSC 400.
-   - Assist students in navigating the registration process smoothly.
-   - **Progress**: In progress.
-     - The foundation is there to create an assistant specializing in helping students register for these classes. Work is ongoing on prompt engineering to provide clear and concise instructions, and continuously update the prompt with recent information.
+- Provide information on how to register for classes requiring instructor consent, such as senior projects or CSC 400.
+- Assist students in navigating the registration process smoothly.
+- **Progress**: In progress.
+  - The foundation is there to create an assistant specializing in helping students register for these classes. Work is ongoing on prompt engineering to provide clear and concise instructions, and continuously update the prompt with recent information.
 
-9. **Create collaborative chat environments**:
+10. **Create collaborative chat environments**:
 
-   - Develop chat functionality where multiple users can participate in the same conversation.
-   - Allow students and advisors to share chats and collaborate effectively.
-   - **Progress**: Not started.
-     - The foundation is there, with each chat log having a unique ID. This ID can be shared with other users and grant them permissions using Role-based Access Control for read/write access.
+- Develop chat functionality where multiple users can participate in the same conversation.
+- Allow students and advisors to share chats and collaborate effectively.
+- **Progress**: Not started.
+  - The foundation is there, with each chat log having a unique ID. This ID can be shared with other users and grant them permissions using Role-based Access Control for read/write access.
+- **Note:** Hold this off for now & wait to see if a new feature can simplify this process.
 
-10. **Integrate the chatbot with Slack**:
+11. **Integrate the chatbot with Slack**:
 
     - Enable seamless communication within the Slack platform.
     - Facilitate interactions between students and professors through Slack notifications.
     - **Progress**: Not started.
+    - **Note**: Make it more general to work for discord, email, etc.
 
-11. **Implement a message flagging system**:
+12. **Implement a message flagging system**:
 
     - Allow students to flag chatbot responses for further review by a professor.
     - Ensure accurate and verified information is provided by involving professors in the review process.
     - **Progress**: Not started.
+    - **Note**: Ties with the chatbot on slack
 
 ## Getting Started
 
@@ -218,14 +210,14 @@
 
 Before you begin working on the Chatbot AI project, ensure you have the following prerequisites installed and set up. These tools and technologies are essential for developing, testing, and deploying the project.
 
-#### 1. Git
+1. Git
 
 Git is a version control system to manage and track code changes.
 
 - [Download Git](https://git-scm.com/downloads)
 - [Git Documentation](https://git-scm.com/doc)
 
-#### 2. Node.js and npm
+2. Node.js and npm
 
 Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine. npm is the package manager for Node.js.
 
@@ -233,13 +225,13 @@ Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine. npm is t
 - [Node.js Documentation](https://nodejs.org/en/docs/)
 - [npm Documentation](https://docs.npmjs.com/)
 
-#### 3. Express.js
+3. Express.js
 
 Express.js is a web application framework for Node.js.
 
 - [Express.js Documentation](https://expressjs.com/)
 
-#### 4. MongoDB
+4. MongoDB
 
 MongoDB is a NoSQL database for storing the project data.
 
@@ -247,7 +239,7 @@ MongoDB is a NoSQL database for storing the project data.
 - [MongoDB Documentation](https://docs.mongodb.com/manual/)
 - [MongoDB MERN Stack Example](https://github.com/mongodb-developer/mern-stack-example)
 
-#### 5. OpenAI API
+5. OpenAI API
 
 OpenAI provides the API for integrating AI capabilities into the project.
 
@@ -260,14 +252,14 @@ OpenAI provides the API for integrating AI capabilities into the project.
 
 - [Function Calling](https://platform.openai.com/docs/guides/function-calling)
 
-#### 6. React
+6. React
 
 React is a JavaScript library for building user interfaces.
 
 - [React Documentation](https://reactjs.org/docs/getting-started.html)
 - [Repo of my React Tutorials](https://github.com/Castro19/Learning-Front-End-Tools)
 
-#### 7. Redux
+7. Redux
 
 Redux is a state management library for JavaScript apps.
 
@@ -275,7 +267,7 @@ Redux is a state management library for JavaScript apps.
 - [Redux Tutorial](https://www.youtube.com/watch?v=5yEG6GhoJBs&t=910s&ab_channel=CosdenSolutions)
   - [Redux Tutorial Repo](https://github.com/Castro19/Learning-Front-End-Tools/tree/main/redux-tutorial)
 
-#### 8. React Router
+8. React Router
 
 React Router is a standard library for routing in React.
 
@@ -283,25 +275,25 @@ React Router is a standard library for routing in React.
 - [React Router Tutorial](https://www.youtube.com/watch?v=oTIJunBa6MA&ab_channel=CosdenSolutions)
   - [React Router Tutorial Repo](https://github.com/Castro19/Learning-Front-End-Tools/tree/main/react-router-tutorial)
 
-#### 9. Tailwind CSS
+9. Tailwind CSS
 
 Tailwind CSS is a utility-first CSS framework.
 
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 
-#### 10. ShadCN UI
+10. ShadCN UI
 
 ShadCN UI is a 3rd party UI component library.
 
 - [ShadCN UI Documentation](https://ui.shadcn.com/docs)
 
-#### 11. Aceternity UI
+11. Aceternity UI
 
 Aceternity UI is another 3rd party UI component library.
 
 - [Aceternity UI Documentation](https://ui.aceternity.com/components)
 
-#### 12. Visual Studio Code (Optional)
+12. Visual Studio Code (Optional)
 
 Visual Studio Code is a source-code editor that includes support for development operations.
 
@@ -425,15 +417,15 @@ Visual Studio Code is a source-code editor that includes support for development
 
 #### Client (Front end)
 
-- **/Client/src/components**
+- **[/Client/src/components](/Client/src/components/)**
 
-  - **/chat**: Components related to chat interface.
-    - **/helper/formatHelper.ts**: Helpers for formatting ChatInput.
-    - **ChatContainer.tsx**: Container for chat components.
-    - **ChatInput.tsx**: Handles user input and dispatches actions for OpenAI API.
-    - **ChatMessage.tsx**: Displays individual chat messages.
-    - **index.tsx**: Exports chat components.
-    - **NewChat.tsx**: Initiates a new chat.
+  - **[/chat](/Client/src/components/chat/)**: Components related to chat interface.
+    - **[/helpers/formatHelper.ts](/Client/src/components/chat/helpers/formatHelper.ts)**: Helpers for formatting ChatInput.
+    - **[ChatContainer.tsx](/Client/src/components/chat/ChatContainer.tsx)**: Container for chat components.
+    - **[ChatInput.tsx](/Client/src/components/chat/ChatInput.tsx)**: Handles user input and dispatches actions for OpenAI API.
+    - **[ChatMessage.tsx](/Client/src/components/chat/ChatMessage.tsx)**: Displays individual chat messages.
+    - **[index.tsx](/Client/src/components/chat/index.tsx)**: Exports chat components.
+    - **[NewChat.tsx](/Client/src/components/chat/NewChat.tsx)**: Initiates a new chat.
   - **/chatLog**: Components for chat logs.
     - **ChatLog.tsx**: Displays list of chat logs.
     - **/deleteLog**: Components for deleting chat logs.
@@ -703,14 +695,14 @@ Visual Studio Code is a source-code editor that includes support for development
 
 ---
 
-### Redux
+### Redux Introuction
 
-#### 1. Overview of Redux
+1. Overview of Redux
 
 - **Redux**: A state management tool that helps us keep track of the entire application's state in a predictable and centralized way. This makes it easier to manage and debug the state of our app.
 - **Benefits**: Centralized state management, easier debugging, predictable state transitions, and improved testability.
 
-#### 2. Store Configuration
+2. Store Configuration
 
 - **Purpose**: The Redux store holds the complete state tree of the application.
 - **Configuration**: The `store` is configured in the file: `Client/src/redux/store.ts`
@@ -730,7 +722,7 @@ Visual Studio Code is a source-code editor that includes support for development
   export type AppDispatch = typeof store.dispatch;
   ```
 
-#### 3. Slices
+3. Slices
 
 - **Purpose**: Define a slice of state relating to the Redux reducer logic and actions for a feature of the application.
 - **Configuration**: Redux Toolkit `createSlice` function simplifies the process of writing redux logic by `combining actions and reducers in one place`.
@@ -756,7 +748,7 @@ Visual Studio Code is a source-code editor that includes support for development
 
   - **addLogList:** This reducer adds a new log entry to the logList array. It takes a PayloadAction<LogData> which contains the new log data.
 
-#### 4. Initial State
+4. Initial State
 
 - **Definition**: The `initialState` object defines the default state for the slice. Here, logList is an array that will hold log entries of type LogData.
 - **Example**:
@@ -770,13 +762,13 @@ Visual Studio Code is a source-code editor that includes support for development
   };
   ```
 
-#### 5. Actions:
+5. Actions:
 
 - **Definition**: Actions are payloads of information that send data from your application to your Redux store. They describe what happened in your app.
 - **Action Creators**: Actions in Redux Toolkit are defined within a slice using `createSlice`. The slice automatically generates action creators for each reducer function.
 - **PayloadAction**: In Redux, using `typescript` we specify the type of data passed as the action like this: `PayloadAction<LogData>` where the `LogData` is a type we created.
 
-#### 6. Reducers: Most important Redux Concept
+6. Reducers: Most important Redux Concept
 
 - **Definition**: Reducers specify `how the application's state changes in response to actions sent to the store`.
   - They are [pure functions](https://www.tutorialspoint.com/redux/redux_pure_functions.htm) that take the previous state and an action as arguments and return a new state.
@@ -810,7 +802,7 @@ Visual Studio Code is a source-code editor that includes support for development
       })
   ```
 
-#### 7. Extra Reducers and Async Thunks:
+7. Extra Reducers and Async Thunks:
 
 **_Async Thunks_**
 
@@ -860,7 +852,7 @@ Visual Studio Code is a source-code editor that includes support for development
   },
   ```
 
-#### 8. Connecting Redux to React
+8. Connecting Redux to React
 
 - In the file: `Client/src/redux/index.ts`:
 
@@ -880,7 +872,7 @@ Visual Studio Code is a source-code editor that includes support for development
 
   - **Best Practices**: For this application, make sure to export reducers and actions for modular access when creating a new Redux slice.
 
-#### 9. Selectors
+9. Selectors
 
 - **Definition**: Selectors allow you to `read` data from the global redux store.
 - **Purpose**: They encapsulate the state structure & provide easy access to specific parts of the state.
@@ -896,7 +888,7 @@ Visual Studio Code is a source-code editor that includes support for development
     }
   ```
 
-#### 10. Dispatch
+10. Dispatch
 
 - **Definition**: In redux, we `dispatch` actions and assign `payloads` (input) in our components.
   - This causes the UI to update based on the action we dispatch and the payload data we assign to it.
@@ -922,7 +914,7 @@ Visual Studio Code is a source-code editor that includes support for development
   - In this example, we are using the actions from `logActions` to fetch the logs by `userId`.
   - The `userId` is the payload value and the `fetchLogs` is the action being dispatched
 
-#### 11. Best Practices:
+11. Best Practices:
 
 - **File Organization**: For every slice, it should be stored in its own separate sub folder in the path `Client/src/redux/`.
   - In this subfolder, we will have the `${feature}Slice`.ts file and an optional helper file that will have functions that do the majority of the logic (e.g. `Crud operations that make the client-side requests`)
@@ -1778,7 +1770,7 @@ export interface MessageSliceType {
   - **Definition**: An Assistant has instructions and can leverage models, tools, and files to respond to user queries.
   - Use the [Assistant API docs](https://platform.openai.com/docs/api-reference/assistants) to research more on how the assistants API works
 
-#### **How to create an Assistant**:
+#### How to create an Assistant
 
 1. In the file `server/helpers/openAI`, there is a helper function that builds an openAI Assistant:
 
@@ -2256,8 +2248,10 @@ By following these steps, you can contribute effectively to the project and main
 - **Reason**: The developer tools such as `inspector` or `console` to view the console logs are much better in Firefox
 -
 
-#### Firefox Chrome Extensions (Very helpful)
+#### Firefox Extensions (Very helpful)
 
+- **REST Client**: Easily debug your REST APIs with an extesnion that can make requests to your server.
+  - [RESTClient](https://addons.mozilla.org/en-US/firefox/addon/restclient/)
 - **React Developer Tools**: Inspect the React tree including the component hierarchy, props, state, etc.
 - [React Dev Tools Download Link for Firefox](https://addons.mozilla.org/en-US/firefox/addon/react-devtools/)
 
