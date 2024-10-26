@@ -6,6 +6,7 @@ import { useUserData } from "@/hooks/useUserData";
 import AboutMe from "@/components/register/SignInFlow/AboutMe";
 import InterestDropdown from "@/components/register/InterestDropdown";
 import Terms from "@/components/register/SignInFlow/Terms";
+import { toast } from "@/components/ui/use-toast";
 
 export const labelStyle = "underline text-lg self-center";
 
@@ -18,6 +19,14 @@ function ProfilePage() {
 
   const handleBackToChat = () => {
     navigate(`/user/${userId}`);
+  };
+
+  const handleToastSave = () => {
+    handleSave();
+    toast({
+      title: "User Profile Updated",
+      description: "Your profile has been updated successfully",
+    });
   };
 
   return (
@@ -58,7 +67,7 @@ function ProfilePage() {
 
           <div className="flex flex-col">
             <button
-              onClick={handleSave}
+              onClick={handleToastSave}
               className="bg-gradient-to-b from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 text-white font-bold py-2 px-4 rounded mt-4"
             >
               Save
