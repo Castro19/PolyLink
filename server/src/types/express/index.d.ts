@@ -6,5 +6,6 @@ declare module "express-serve-static-core" {
   interface Request {
     user?: DecodedIdToken & { role?: UserType };
     file?: Express.Multer.File;
+    signal?: AbortSignal;
   }
 }

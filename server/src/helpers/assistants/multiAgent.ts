@@ -14,31 +14,28 @@ import { searchProfessors } from "../qdrant/qdrantQuery.js";
 import { addMessageToThread } from "../openAI/threadFunctions.js";
 import { initializeOrFetchIds } from "../openAI/threadFunctions.js";
 import { getAssistantById } from "../../db/models/assistant/assistantServices.js";
-import { RunningStreamData } from "@polylink/shared/types";
 
 type MultiAgentRequest = {
   model: { id: string; title: string };
   message: string;
   res: Response;
   userMessageId: string;
-  runningStreams: RunningStreamData;
   chatId: string;
+  abortController: AbortController;
 };
 async function handleMultiAgentModel({
   model,
   message,
   res,
   userMessageId,
-  runningStreams,
   chatId,
+  abortController,
 }: MultiAgentRequest): Promise<void> {
   let messageToAdd = message;
-
   try {
     // First assistant: process the user's message and return JSON object
     const helperAssistantId = formatAssistantId;
     const helperThread = await openai.beta.threads.create();
-    runningStreams[userMessageId].threadId = helperThread.id;
 
     if (!helperAssistantId) {
       throw new Error("Helper assistant ID not found");
@@ -57,7 +54,7 @@ async function handleMultiAgentModel({
       helperThread.id,
       helperAssistantId,
       userMessageId,
-      runningStreams
+      abortController
     );
     // Delete the helper thread
     await openai.beta.threads.del(helperThread.id);
@@ -73,7 +70,7 @@ async function handleMultiAgentModel({
     if (!assistantId) {
       throw new Error("Assistant ID not found");
     }
-    runningStreams[userMessageId].threadId = threadId;
+
     // Parse the helper assistant's response (assumes it's a JSON string)
     let jsonObject;
     // TO-DO: How to always ensure that the response is a JSON object?
@@ -151,7 +148,7 @@ async function handleMultiAgentModel({
       assistantId,
       res,
       userMessageId,
-      runningStreams
+      abortController
     );
   } catch (error) {
     if (error instanceof Error && error.message === "Response canceled") {

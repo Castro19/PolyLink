@@ -9,7 +9,7 @@ import { runAssistantAndStreamResponse } from "./streamResponse";
 import { searchCourses } from "../qdrant/qdrantQuery.js";
 import { getCourseInfo } from "../../db/models/courses/courseServices.js";
 import flowchartHelper from "../flowchart/flowchart.js";
-import { RunningStreamData, UserData } from "@polylink/shared/types";
+import { UserData } from "@polylink/shared/types";
 import { FileObject } from "openai/resources/index.mjs";
 import { Response } from "express";
 
@@ -70,7 +70,7 @@ type SingleAgentRequestBody = {
   res: Response;
   userId: string;
   userMessageId: string;
-  runningStreams: RunningStreamData;
+  abortController: AbortController;
 };
 
 async function handleSingleAgentModel({
@@ -81,71 +81,73 @@ async function handleSingleAgentModel({
   res,
   userId,
   userMessageId,
-  runningStreams,
+  abortController,
 }: SingleAgentRequestBody): Promise<void> {
-  let messageToAdd = message;
-  const assistant = await getAssistantById(model.id);
-  if (!assistant) {
-    throw new Error("Assistant not found");
-  }
-  const assistantId = assistant.assistantId;
-  if (!assistantId) {
-    throw new Error("Assistant ID not found");
-  }
-  // Creates from OpenAI API & Stores in DB if not already created
-  const { threadId, vectorStoreId } = await initializeOrFetchIds(
-    chatId,
-    userFile ? userFile.id : null,
-    model.id
-  );
-  // Add threadId to runningStreams
-  runningStreams[userMessageId].threadId = threadId;
-
-  // Setup vector store and update assistant
-  if (userFile && vectorStoreId) {
-    await setupVectorStoreAndUpdateAssistant(
-      vectorStoreId,
-      assistantId,
-      userFile.id
-    );
-  }
-  const user = await getUserByFirebaseId(userId);
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  if (model.title === "Matching Assistant") {
-    messageToAdd = matchingAssistant(user, message);
-  } else if (model.title === "CSCI Classes Assistant") {
-    messageToAdd = csciClassesAssistant(user, message);
-  } else if (model.title === "Flowchart Assistant") {
-    messageToAdd = await flowchartAssistant(user, message);
-  } else if (model.title === "Course Catalog") {
-    messageToAdd = await courseCatalogAssistant(user, message);
-  } else if (model.title === "Calpoly Clubs") {
-    messageToAdd = calpolyClubsAssistant(user, message);
-  }
-
-  console.log("messageToAdd: ", messageToAdd);
   try {
-    // Add user message to thread
-    await addMessageToThread(
-      threadId,
-      "user",
-      messageToAdd,
+    let messageToAdd = message;
+    const assistant = await getAssistantById(model.id);
+    if (!assistant) {
+      throw new Error("Assistant not found");
+    }
+    const assistantId = assistant.assistantId;
+    if (!assistantId) {
+      throw new Error("Assistant ID not found");
+    }
+    // Creates from OpenAI API & Stores in DB if not already created
+    const { threadId, vectorStoreId } = await initializeOrFetchIds(
+      chatId,
       userFile ? userFile.id : null,
-      model.title
+      model.id
     );
 
-    // Stream assistant's response
-    await runAssistantAndStreamResponse(
-      threadId,
-      assistantId,
-      res,
-      userMessageId,
-      runningStreams
-    );
+    // Setup vector store and update assistant
+    if (userFile && vectorStoreId) {
+      await setupVectorStoreAndUpdateAssistant(
+        vectorStoreId,
+        assistantId,
+        userFile.id
+      );
+    }
+    const user = await getUserByFirebaseId(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (model.title === "Matching Assistant") {
+      messageToAdd = matchingAssistant(user, message);
+    } else if (model.title === "CSCI Classes Assistant") {
+      messageToAdd = csciClassesAssistant(user, message);
+    } else if (model.title === "Flowchart Assistant") {
+      messageToAdd = await flowchartAssistant(user, message);
+    } else if (model.title === "Course Catalog") {
+      messageToAdd = await courseCatalogAssistant(user, message);
+    } else if (model.title === "Calpoly Clubs") {
+      messageToAdd = calpolyClubsAssistant(user, message);
+    }
+
+    console.log("messageToAdd: ", messageToAdd);
+    try {
+      // Add user message to thread
+      await addMessageToThread(
+        threadId,
+        "user",
+        messageToAdd,
+        userFile ? userFile.id : null,
+        model.title
+      );
+
+      // Stream assistant's response
+      await runAssistantAndStreamResponse(
+        threadId,
+        assistantId,
+        res,
+        userMessageId,
+        abortController
+      );
+    } catch (error) {
+      console.error("Error in single-agent model:", error);
+    }
   } catch (error) {
     console.error("Error in single-agent model:", error);
   }

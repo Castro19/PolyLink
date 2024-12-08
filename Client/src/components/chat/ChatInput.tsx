@@ -31,6 +31,9 @@ const ChatInput = ({
   const [currentUserMessageId, setCurrentUserMessageId] = useState<
     string | null
   >(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
+
   const currentModel = useAppSelector((state) => state.assistant.currentModel);
   const { msg, isNewChat, currentChatId, isLoading, error } = useAppSelector(
     (state) => state.message
@@ -91,6 +94,8 @@ const ChatInput = ({
       setSelectedFile(null);
 
       try {
+        const controller = new AbortController();
+        setAbortController(controller);
         await dispatch(
           messageActions.fetchBotResponse({
             currentModel,
@@ -100,10 +105,15 @@ const ChatInput = ({
             userId: userId ? userId : "",
             userMessageId,
             botMessageId,
+            abortController: controller,
           })
         ).unwrap();
       } catch (error) {
-        console.error("Failed to fetch bot response: ", error);
+        if ((error as Error).message.includes("Run canceled")) {
+          console.log("Run canceled");
+        } else {
+          console.error("Failed to fetch bot response: ", error);
+        }
 
         trackUpdateMessage({
           userMessageId,
@@ -115,6 +125,8 @@ const ChatInput = ({
               ? error.message
               : "An unknown error occurred",
         });
+      } finally {
+        setAbortController(null);
       }
 
       if (isNewChat) {
@@ -157,11 +169,15 @@ const ChatInput = ({
     }
   };
 
-  const handleStop = (e: { preventDefault: () => void }) => {
+  const handleAbort = (e: { preventDefault: () => void }) => {
+    console.log("handleAbort abortController: ", abortController);
     e.preventDefault();
 
-    if (currentUserMessageId) {
-      dispatch(messageActions.cancelBotResponse(currentUserMessageId));
+    if (abortController) {
+      if (currentUserMessageId) {
+        abortController.abort();
+        console.log("API call aborted");
+      }
     }
   };
 
@@ -204,7 +220,7 @@ const ChatInput = ({
             type="submit"
             variant="outline"
             ref={sendButtonRef}
-            onClick={handleStop}
+            onClick={handleAbort}
           >
             <IoStopCircleOutline className="text-red-500 text-3xl" />
           </Button>

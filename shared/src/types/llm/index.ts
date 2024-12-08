@@ -14,15 +14,6 @@ export type TitleRequestBody = {
   message: string;
 };
 
-export type RunningStreamData = Record<
-  string,
-  {
-    canceled: boolean;
-    runId: string | null;
-    threadId: string | null;
-  }
->;
-
 export type llmRequestBody = {
   message: string;
   chatId: string;

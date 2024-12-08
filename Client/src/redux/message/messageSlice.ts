@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import sendMessage, { cancelRun, sendUserReaction } from "./crudMessage";
+import sendMessage, { sendUserReaction } from "./crudMessage";
 // Types:
 import {
   AssistantType,
@@ -16,6 +16,7 @@ interface fetchBotResponseParams {
   userId: string;
   userMessageId: string;
   botMessageId: string;
+  abortController: AbortController;
 }
 type SendMessageReturnType = {
   botMessage: MessageObjType;
@@ -40,6 +41,7 @@ export const fetchBotResponse = createAsyncThunk<
       userId,
       userMessageId,
       botMessageId,
+      abortController,
     }: fetchBotResponseParams,
     { dispatch, rejectWithValue }
   ) => {
@@ -76,7 +78,8 @@ export const fetchBotResponse = createAsyncThunk<
           currentChatId,
           userId,
           userMessageId,
-          botMessageId
+          botMessageId,
+          abortController
         );
       dispatch(updateThinkingState({ id: botMessageId, thinkingState: false }));
       // Streaming updates for the bot messages
@@ -85,6 +88,12 @@ export const fetchBotResponse = createAsyncThunk<
           dispatch(updateBotMessage({ id: botMessageId, text })); // Updating existing bot message
         });
       } catch (streamError) {
+        if (abortController.signal.aborted) {
+          return rejectWithValue({
+            message: "Run canceled",
+            botMessageId,
+          });
+        }
         return rejectWithValue({
           message:
             "There was a problem streaming the response. Please try again later.",
@@ -101,21 +110,6 @@ export const fetchBotResponse = createAsyncThunk<
         message: "An unknown error occurred",
         botMessageId,
       });
-    }
-  }
-);
-// In your Redux actions file
-export const cancelBotResponse = createAsyncThunk(
-  "message/cancelBotResponse",
-  async (userMessageId: string, { rejectWithValue }) => {
-    try {
-      await cancelRun(userMessageId); // Cancelling the bot response
-    } catch (error) {
-      console.error("Error cancelling bot response:", error);
-      if (error instanceof Error) {
-        return rejectWithValue({ message: error.message });
-      }
-      return rejectWithValue({ message: "An unknown error occurred" });
     }
   }
 );
@@ -248,9 +242,6 @@ const messageSlice = createSlice({
             message.thinkingState = false;
           }
         }
-      })
-      .addCase(cancelBotResponse.fulfilled, (state) => {
-        state.isLoading = false;
       });
   },
 });

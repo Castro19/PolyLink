@@ -6,7 +6,8 @@ export default async function sendMessage(
   currentChatId: string | null,
   userId: string,
   userMessageId: string,
-  botMessageId: string
+  botMessageId: string,
+  abortController: AbortController
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   if (msg.length >= 2000) {
@@ -45,13 +46,14 @@ export default async function sendMessage(
     if (currentChatId) {
       formData.append("chatId", currentChatId);
     }
-
+    console.log("abortController b4 fetch: ", abortController);
     const fetchPromise: Promise<Response> = fetch(
       "http://localhost:4000/llms/respond",
       {
         method: "POST",
         body: formData,
         credentials: "include",
+        signal: abortController.signal,
       }
     );
 
@@ -139,25 +141,6 @@ export default async function sendMessage(
     };
   }
 }
-
-export const cancelRun = async (userMessageId: string) => {
-  try {
-    const response = await fetch("http://localhost:4000/llms/cancel", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userMessageId }),
-      credentials: "include",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to cancel bot response");
-    }
-  } catch (error) {
-    console.error("Error cancelling bot response:", error);
-    throw error;
-  }
-};
 
 export const sendUserReaction = async (
   logId: string,

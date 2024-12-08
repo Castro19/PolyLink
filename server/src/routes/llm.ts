@@ -9,7 +9,7 @@ import asyncHandler from "../middlewares/asyncMiddleware";
 import handleSingleAgentModel from "../helpers/assistants/singleAgent";
 import handleMultiAgentModel from "../helpers/assistants/multiAgent";
 import { FileObject } from "openai/resources/index.mjs";
-import { llmRequestBody, RunningStreamData } from "@polylink/shared/types";
+import { llmRequestBody } from "@polylink/shared/types";
 
 const router = express.Router();
 
@@ -27,8 +27,7 @@ const messageRateLimiter = rateLimit({
 });
 
 const MAX_FILE_SIZE_MB = 1;
-// Store running streams: Useful for cancelling a running stream
-const runningStreams: RunningStreamData = {};
+
 router.post(
   "/respond",
   messageRateLimiter,
@@ -38,6 +37,8 @@ router.post(
       res.setHeader("Content-Type", "text/plain");
       res.setHeader("Transfer-Encoding", "chunked");
     }
+    const abortController = new AbortController();
+    console.log("abortController in respond: ", abortController);
 
     const { message, chatId, userId, userMessageId, currentModel } =
       req.body as llmRequestBody;
@@ -51,11 +52,6 @@ router.post(
     const file = req.file;
 
     let userFile: FileObject | null = null;
-    runningStreams[userMessageId] = {
-      canceled: false,
-      runId: null,
-      threadId: null,
-    };
 
     if (file) {
       const fileSizeInMB = file.size / (1024 * 1024);
@@ -86,13 +82,14 @@ router.post(
 
     if (model.title === "Professor & Course Advisor") {
       try {
+        // Listen for client disconnect
         await handleMultiAgentModel({
           model,
           message,
           res,
           userMessageId,
-          runningStreams,
           chatId,
+          abortController,
         });
       } catch (error) {
         console.error("Error in multi-agent model:", error);
@@ -104,6 +101,14 @@ router.post(
       }
     } else {
       try {
+        // Listen for client disconnect
+        if (abortController.signal.aborted === true) {
+          console.log(
+            "abortController.signal in respond: ",
+            abortController.signal
+          );
+          req.on("close", () => abortController.abort());
+        }
         await handleSingleAgentModel({
           model,
           chatId,
@@ -112,46 +117,21 @@ router.post(
           res,
           userId,
           userMessageId,
-          runningStreams,
+          abortController,
         });
       } catch (error) {
-        console.error("Error in single-agent model:", error);
-        if (!res.headersSent) {
-          res.status(500).send("Failed to process request.");
+        if ((error as { name: string }).name === "AbortError") {
+          console.log("ABORT ERROR");
+          res.status(499).send("Client Closed Request");
         } else {
-          res.end();
+          console.error("Error in single-agent model:", error);
+          if (!res.headersSent) {
+            res.status(500).send("Failed to process request.");
+          } else {
+            res.end();
+          }
         }
       }
-    }
-  })
-);
-
-router.post(
-  "/cancel",
-  asyncHandler(async (req: Request, res: Response) => {
-    const { userMessageId } = req.body;
-
-    const runData = runningStreams[userMessageId];
-    if (runData) {
-      runData.canceled = true;
-      if (runData.runId && runData.threadId) {
-        try {
-          await openai.beta.threads.runs.cancel(
-            runData.threadId,
-            runData.runId
-          );
-          delete runningStreams[userMessageId];
-          res.status(200).send("Run(s) cancelled");
-        } catch (error) {
-          console.error("Error cancelling run(s):", error);
-          res.status(500).send("Error cancelling run(s)");
-        }
-      } else {
-        // `runId` not yet available; cancellation flag is set
-        res.status(200).send("Run cancellation requested");
-      }
-    } else {
-      res.status(404).send("Run not found");
     }
   })
 );
